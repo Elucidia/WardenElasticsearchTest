@@ -36,11 +36,11 @@ EndpointEnum = {
     3: {'name': 'Jacobs endpoint', 'guid': 'c4d2da05-780b-45b1-954f-0f7501958778'},
 }
 
+
 class State:
     def __init__(self, timestamp=None, endpoint_index=None):
         self.generate_state(endpoint_index=endpoint_index, timestamp=timestamp)
 
-    
     def json(self):
         dict = {
             'timestamp': self.timestamp,
@@ -48,66 +48,66 @@ class State:
             'build_number': self.build_number,
             'pii_files': self.pii_files,
         }
-        
-        return json.dumps(dict, indent=4, separators=[',', ':'])
 
+        return json.dumps(dict, indent=4, separators=[',', ':'])
 
     def generate_state(self, endpoint_index=None, timestamp=None):
 
         if endpoint_index:
             self.endpoint_id = EndpointEnum[endpoint_index]['name']
         else:
-            self.endpoint_id =  EndpointEnum[random.randrange(0, 3, 1)]['name']
+            self.endpoint_id = EndpointEnum[random.randrange(0, 3, 1)]['name']
 
         if timestamp:
             self.timestamp = timestamp
         else:
-            self.timestamp = int(round(time.time()*1000, 0))
+            self.timestamp = int(round(time.time() * 1000, 0))
 
         self.build_number = '1.0'
-        
+
         self.pii_files = [
-        {
-        'path': f'path_{random.randrange(0, 1000, 1)}',
-        'score': random.randrange(0, 100)/100,
-        'mime_type': MimeTypeEnum[random.randrange(0, 9, 1)],
-        'timestamp': self.timestamp,
-        'hash': str(uuid.uuid1()),
-        'encrypted': True,
-        'content': [self.get_rand_content() for i in range(0, 3)]
-        }
-         for i in range(1, random.randrange(2, 5, 1))
+            {
+                'path': f'path_{random.randint(0, 999)}',
+                'score': random.random(),
+                'mime_type': MimeTypeEnum[random.randint(0, 9)],
+                'timestamp': self.timestamp,
+                'hash': str(uuid.uuid1()),
+                'encrypted': True,
+                'content': [
+                    {
+                        'type_name': RegexEnum[i]['name'],
+                        'type_id': RegexEnum[i]['guid'],
+                        'amount': random.randint(0, 300),
+                        'correlations': [
+                            {
+                                'type_name': RegexEnum[j]['name'],
+                                'type_id': RegexEnum[j]['guid'],
+                                'correlation': random.random()
+                            }
+                            for j in random.sample(list(RegexEnum.keys()), random.randint(0, 9))
+                        ]
+                    }
+                    for i in random.sample(list(RegexEnum.keys()), random.randint(0, 9))
+                ]
+            }
+            for _ in range(1, random.randint(1, 100))
         ]
-    
+
     def get_timestamp(self):
-        now = int(round(time.time()*1000, 0))
+        now = int(round(time.time() * 1000, 0))
         self.timestamp = now + random.randrange(0, 1000000, 5)
-    
-    def get_rand_content(self):
-        type = RegexEnum[random.randrange(0, 9, 1)]
-        return {
-            'type_name': type['name'],
-            'type_id': type['guid'],
-            'amount': random.randrange(0, 300, 5),
-            'correlations': [
-                {
-                'type_name': "name", 'type_id': RegexEnum[random.randrange(0, 9, 1)]['guid'],  'correlation': random.randrange(0, 100, 1)/100
-                },
-                {
-                'type_name': "emails", 'type_id': RegexEnum[random.randrange(0, 9, 1)]['guid'], 'correlation': random.randrange(0, 100, 1)/100
-                },
-             ]
-        }
-
-
 
 
 def get_state_timeserie(number_of_endpoints=1, states_per_endpoint=3):
-    now = int(round(time.time()*1000, 0))
+    now = int(round(time.time() * 1000, 0))
     endpoints = []
 
     for k in range(0, number_of_endpoints):
         endpoint_index = k
-        endpoints.append([State(endpoint_index=endpoint_index, timestamp=now + (i)*24*3600*1000) for i in range(0, states_per_endpoint)])
+        endpoints.append([State(endpoint_index=endpoint_index, timestamp=now + (i) * 24 * 3600 * 1000) for i in
+                          range(0, states_per_endpoint)])
 
     return endpoints
+
+def get_state(timestamp, end_point_index):
+    return State(timestamp, end_point_index)
