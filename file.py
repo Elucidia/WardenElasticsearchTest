@@ -36,54 +36,34 @@ EndpointEnum = {
     3: {'name': 'Jacobs endpoint', 'guid': 'c4d2da05-780b-45b1-954f-0f7501958778'},
 }
 
-class State:
-    def __init__(self, timestamp=None, endpoint_index=None):
-        self.generate_state(endpoint_index=endpoint_index, timestamp=timestamp)
 
-    
+class File:
+
+    def __init__(self, number_of_regexes = 3, timestamp = None):
+        self.generate_random_file()
+
+
     def json(self):
-        dict = {
-            'timestamp': self.timestamp,
-            'endpoint_id': self.endpoint_id,
-            'build_number': self.build_number,
-            'pii_files': self.pii_files,
-        }
-        
-        return json.dumps(dict, indent=4, separators=[',', ':'])
+        return json.dumps(self.file)
 
 
-    def generate_state(self, endpoint_index=None, timestamp=None):
-
-        if endpoint_index:
-            self.endpoint_id = EndpointEnum[endpoint_index]['name']
-        else:
-            self.endpoint_id =  EndpointEnum[random.randrange(0, 3, 1)]['name']
+    def generate_random_file(self, number_of_regexes = 3, timestamp=None):
+        file = {
+            'path': f'path_{random.randrange(0, 1000, 1)}',
+            'score': random.randrange(0, 100)/100,
+            'mime_type': MimeTypeEnum[random.randrange(0, 9, 1)],
+            'timestamp': int(round(time.time()*1000, 0)),
+            'hash': str(uuid.uuid1()),
+            'encrypted': True,
+            'content': [self.get_random_content() for i in range(0, number_of_regexes)]
+            }
 
         if timestamp:
-            self.timestamp = timestamp
-        else:
-            self.timestamp = int(round(time.time()*1000, 0))
+            file['timestamp'] = timestamp
 
-        self.build_number = '1.0'
-        
-        self.pii_files = [
-        {
-        'path': f'path_{random.randrange(0, 1000, 1)}',
-        'score': random.randrange(0, 100)/100,
-        'mime_type': MimeTypeEnum[random.randrange(0, 9, 1)],
-        'timestamp': self.timestamp,
-        'hash': str(uuid.uuid1()),
-        'encrypted': True,
-        'content': [self.get_rand_content() for i in range(0, 3)]
-        }
-         for i in range(1, random.randrange(2, 5, 1))
-        ]
-    
-    def get_timestamp(self):
-        now = int(round(time.time()*1000, 0))
-        self.timestamp = now + random.randrange(0, 1000000, 5)
-    
-    def get_rand_content(self):
+        self.file = file
+
+    def get_random_content(self):
         type = RegexEnum[random.randrange(0, 9, 1)]
         return {
             'type_name': type['name'],
@@ -98,16 +78,4 @@ class State:
                 },
              ]
         }
-
-
-
-
-def get_state_timeserie(number_of_endpoints=1, states_per_endpoint=3):
-    now = int(round(time.time()*1000, 0))
-    endpoints = []
-
-    for k in range(0, number_of_endpoints):
-        endpoint_index = k
-        endpoints.append([State(endpoint_index=endpoint_index, timestamp=now + (i)*24*3600*1000) for i in range(0, states_per_endpoint)])
-
-    return endpoints
+        
